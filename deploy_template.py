@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from onboard2 import OnboardDSC
+from onboard import OnboardDSC
 from getpass import getpass
 from pprint import pprint
 import argparse
