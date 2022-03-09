@@ -1,0 +1,76 @@
+{
+    "$schema": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/src/schema/latest/base.schema.json",
+    "schemaVersion": "1.26.0",
+    "class": "Device",
+    "label": "Configure DSC",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "internal": {
+            "class": "VLAN",
+            "tag": 4094,
+            "interfaces": [
+                {
+                    "name": "1.1",
+                    "tagged": false
+                }
+            ]
+        },
+        "internalSelf": {
+            "class": "SelfIp",
+            "address": "{{ int_self_ip }}",
+            "allowService": "default",
+            "vlan": "internal"
+        },
+        "external": {
+            "class": "VLAN",
+            "tag": 4093,
+            "interfaces": [
+                {
+                    "name": "1.2",
+                    "tagged": false
+                }
+            ]
+        },
+        "externalSelf": {
+            "class": "SelfIp",
+            "address": "{{ ext_self_ip }}",
+            "allowService": "default",
+            "vlan": "external"
+        },
+        "configsync": {
+            "class": "ConfigSync",
+            "configsyncIp": "/Common/internalSelf/address"
+        },
+         "failoverAddress": {
+             "class": "FailoverUnicast",
+             "addressPorts": [
+                {
+                     "address": "{{ mgmt_ip }}"
+                },
+                {
+                     "address": "/Common/internalSelf/address"
+                }
+             ]
+        },
+        "trust": {
+            "class": "DeviceTrust",
+            "localUsername": "admin",
+            "localPassword": "admin",
+            "remoteHost": "/Common/failoverGroup/members/0",
+            "remoteUsername": "admin",
+            "remotePassword": "admin"
+        },
+        "failoverGroup": {
+            "class": "DeviceGroup",
+            "type": "sync-failover",
+            "members": [
+                "{{ mgmt_ip_1 }}",
+                "{{ mgmt_ip_2 }}"                
+            ],
+            "owner": "/Common/failoverGroup/members/0",
+            "autoSync": false,
+            "networkFailover": true         
+        }
+    }
+}
