@@ -1,0 +1,31 @@
+{
+    "$schema": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/src/schema/latest/base.schema.json",
+    "schemaVersion": "1.27.0",
+    "class": "Device",
+    "label": "Configure DSC",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "internal": {
+            "class": "VLAN",
+            "tag": 4094,
+            "interfaces": [
+                {
+                    "name": "1.1",
+                    "tagged": false
+                }
+            ]
+        },
+        "internalSelf": {
+            "class": "SelfIp",
+            "address": "{{ int_self_ip }}",
+            "allowService": "default",
+            "vlan": "internal"
+        },
+	      "highWay": {
+	          "class": "Route",
+	          "gw": "{{ gw_ip }}",
+	          "mtu": "{{ mtu }}"
+	      }
+    }
+}
