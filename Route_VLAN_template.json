@@ -22,10 +22,10 @@
             "allowService": "default",
             "vlan": "internal"
         },
-	      "highWay": {
-	          "class": "Route",
-	          "gw": "{{ gw_ip }}",
-	          "mtu": "{{ mtu }}"
-	      }
+        "highWay": {
+	    "class": "Route",
+	    "gw": "{{ gw_ip }}",
+	    "mtu": "{{ mtu }}"
+	}
     }
 }
