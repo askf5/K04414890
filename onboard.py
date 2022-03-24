@@ -5,29 +5,23 @@ import time
 
 class OnboardSuite:
     
-    def __init__(self, do_target_ip, mgmt_ip_1, mgmt_ip_2, int_self_ip, 
-        ext_self_ip, pw):
+    def __init__(self, do_target_ip, do_template, do_data, pw, update):
         self.do_target_ip = do_target_ip
-        self.mgmt_ip_1 = mgmt_ip_1
-        self.mgmt_ip_2 = mgmt_ip_2
-        self.int_self_ip = int_self_ip
-        self.ext_self_ip = ext_self_ip
+        self.do_template = do_template
         self.pw = pw
+        self.do_data = do_data
+        if update:
+            self.do_version = update
+        else:
+            self.do_version = '1.27.1-2'
     
     def RenderDeclaration(self):
         '''Load jinja2 declaration template and render it with vars taken
         from CLI'''
         dir = '.'
-        json_template = 'DSC_VLAN_template.json'
         env = Environment(loader=FileSystemLoader(dir))
-        template = env.get_template(json_template)
-        self.template_content = template.render(
-            mgmt_ip=self.do_target_ip,
-            mgmt_ip_1=self.mgmt_ip_1, 
-            mgmt_ip_2=self.mgmt_ip_2,
-            int_self_ip=self.int_self_ip,
-            ext_self_ip=self.ext_self_ip
-        )
+        template = env.get_template(self.do_template)
+        self.template_content = template.render(self.do_data)
 
     def WriteDeclarationFile(self):
         '''Write the declaration to a file so that it can be used by 
@@ -47,8 +41,9 @@ class OnboardSuite:
         # Install DO RPM then add a short delay for SW to initialize
         self.package_url = 'https://github.com/F5Networks/'\
             + 'f5-declarative-onboarding/'\
-            + 'releases/download/v1.27.0/'\
-            + 'f5-declarative-onboarding-1.27.0-6.noarch.rpm'
+            + 'releases/download/v' + self.do_version.split('-')[0]\
+            + '/f5-declarative-onboarding-' + self.do_version \
+            + '.noarch.rpm'
         if not self.do.package.is_installed()['installed']:
             self.do.package.install(package_url=self.package_url)
             # Wait for installation to complete
@@ -60,29 +55,12 @@ class OnboardSuite:
         self.create = self.do.service.create(config_file='declaration_' 
             + self.do_target_ip + '.json')
 
-    def ValidateService(self):
-        '''Validate configuration was successfully deployed from actual values
-        returned by devices'''
-        self.dsc_ip = self.device.make_request('/mgmt/tm/cm/device/'
-            + '?$select=configsyncIp,unicastAddress')
-        self.device_group = self.device.make_request('/mgmt/tm/cm/device-group/'
-            + '~Common~failoverGroup/devices/')
-        self.device_trust = self.device.make_request('/mgmt/tm/cm/trust-domain/'
-            + '~Common~Root/?$select=caDevices')
-        self.vlans =  self.device.make_request('/mgmt/tm/net/vlan/'
-            + '?expandSubcollections=true&$select=name,tag,'
-            + 'interfacesReference/items/name,'
-            + 'interfacesReference/items/untagged')
-        self.selfips = self.device.make_request('/mgmt/tm/net/self/'
-            + '?$select=address,vlan')
-
 class OnboardDSC(OnboardSuite):
 
-    def __init__(self, do_target_ip, mgmt_ip_1, mgmt_ip_2, int_self_ip, 
-        ext_self_ip, pw):
+    def __init__(self, do_target_ip, do_template, do_data, pw, update):
         # Initialize vars from parent
-        OnboardSuite.__init__(self, do_target_ip, mgmt_ip_1, mgmt_ip_2, 
-            int_self_ip, ext_self_ip, pw)
+        OnboardSuite.__init__(self, do_target_ip, do_template, do_data,
+                pw, update)
 
     def RunAllOnboard(self):
         # Run all functions from parent to simplify execution
@@ -91,4 +69,3 @@ class OnboardDSC(OnboardSuite):
         OnboardSuite.Connect2Service(self)
         OnboardSuite.InstallDOPackage(self)
         OnboardSuite.CreateService(self)
-        OnboardSuite.ValidateService(self)
