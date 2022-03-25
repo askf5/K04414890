@@ -2,7 +2,7 @@
     "$schema": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/src/schema/latest/base.schema.json",
     "schemaVersion": "1.27.0",
     "class": "Device",
-    "label": "Configure DSC",
+    "label": "Configure Route",
     "async": true,
     "Common": {
         "class": "Tenant",
